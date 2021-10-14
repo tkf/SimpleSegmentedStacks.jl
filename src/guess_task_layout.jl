@@ -14,10 +14,18 @@ function task_sample()
         )
         =#
         yieldto(parent, ptr1)
+        # Suspend the task using `yieldto` to avoid the stack buffer to be GC'ed
     end
     return task, yieldto(task)
 end
 
+"""
+    guess_task_layout(task, ptr1) -> offset_bytes
+
+Return the guessed offset of the hidden field `stkbuf` of `jl_task_t` in bytes.
+
+`ptr1` is a frame address of `task` "reasonably early" in the call stack.
+"""
 function guess_task_layout(task, ptr1)
     GC.@preserve task begin
         offset_base = (sizeof(Task) ÷ sizeof(UInt)) * sizeof(UInt)
